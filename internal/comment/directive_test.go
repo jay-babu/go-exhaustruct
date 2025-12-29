@@ -19,13 +19,23 @@ func TestParseDirective(t *testing.T) {
 		found     bool
 	}{
 		{
+			name:      "nil comments",
+			comments:  nil,
+			directive: comment.DirectiveIgnore,
+			found:     false,
+		},
+		{
+			name:      "empty comments",
+			comments:  []*ast.CommentGroup{},
+			directive: comment.DirectiveIgnore,
+			found:     false,
+		},
+		{
 			name: "no directive",
 			comments: []*ast.CommentGroup{
 				{
 					List: []*ast.Comment{
-						{
-							Text: "// some comment",
-						},
+						{Text: "// some comment"},
 					},
 				},
 			},
@@ -37,15 +47,9 @@ func TestParseDirective(t *testing.T) {
 			comments: []*ast.CommentGroup{
 				{
 					List: []*ast.Comment{
-						{
-							Text: "//exhaustruct:ignore",
-						},
-						{
-							Text: "// some comment",
-						},
-						{
-							Text: "//exhaustruct:enforce",
-						},
+						{Text: "//exhaustruct:ignore"},
+						{Text: "// some comment"},
+						{Text: "//exhaustruct:enforce"},
 					},
 				},
 			},
@@ -57,20 +61,26 @@ func TestParseDirective(t *testing.T) {
 			comments: []*ast.CommentGroup{
 				{
 					List: []*ast.Comment{
-						{
-							Text: "//exhaustruct:ignore",
-						},
-						{
-							Text: "// some comment",
-						},
-						{
-							Text: "//exhaustruct:enforce beacuse of some reason",
-						},
+						{Text: "//exhaustruct:ignore"},
+						{Text: "// some comment"},
+						{Text: "//exhaustruct:enforce beacuse of some reason"},
 					},
 				},
 			},
 			directive: comment.DirectiveEnforce,
 			found:     true,
+		},
+		{
+			name: "wrong directive",
+			comments: []*ast.CommentGroup{
+				{
+					List: []*ast.Comment{
+						{Text: "//exhaustruct:ignore"},
+					},
+				},
+			},
+			directive: comment.DirectiveEnforce,
+			found:     false,
 		},
 	}
 
