@@ -1,5 +1,7 @@
 package testdata
 
+type emptyStruct struct{}
+
 type testStruct struct {
 	// some random comment
 

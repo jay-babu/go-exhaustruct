@@ -187,6 +187,27 @@ func Test_Fields_Skipped_EmptyStruct(t *testing.T) {
 	require.Nil(t, emptyFields.Skipped(lit, false))
 }
 
+func Test_NewFields_EmptyStruct(t *testing.T) {
+	t.Parallel()
+
+	pkgs, err := packages.Load(&packages.Config{ //nolint:exhaustruct
+		Mode: packages.NeedTypes,
+		Dir:  "testdata",
+	}, "")
+	require.NoError(t, err)
+	require.Len(t, pkgs, 1)
+
+	pkg := pkgs[0]
+	obj := pkg.Types.Scope().Lookup("emptyStruct")
+	require.NotNil(t, obj)
+
+	strct := obj.Type().Underlying().(*types.Struct) //nolint:forcetypeassert
+
+	fields := structure.NewFields(strct)
+	assert.Empty(t, fields)
+	assert.Empty(t, fields.String())
+}
+
 func Test_FieldsCache_Stats(t *testing.T) {
 	t.Parallel()
 
