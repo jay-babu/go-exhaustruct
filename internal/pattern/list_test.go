@@ -145,12 +145,20 @@ func TestList_MatchFullString(t *testing.T) {
 	}
 }
 
-func TestList_MatchFullString_EmptyList(t *testing.T) {
+func TestList_MatchFullString_NilList(t *testing.T) {
 	t.Parallel()
 
 	var list pattern.List
 
-	assert.False(t, list.MatchFullString("anything"), "empty list should not match anything")
+	assert.False(t, list.MatchFullString("anything"), "nil list should not match anything")
+}
+
+func TestList_String_NilList(t *testing.T) {
+	t.Parallel()
+
+	var list pattern.List
+
+	assert.Empty(t, list.String(), "nil list should return empty string")
 }
 
 func TestList_String(t *testing.T) {
@@ -203,6 +211,11 @@ func TestList_Set(t *testing.T) {
 			name:    "valid pattern",
 			value:   "test.*",
 			wantErr: false,
+		},
+		{
+			name:    "empty string pattern",
+			value:   "",
+			wantErr: true,
 		},
 		{
 			name:    "invalid pattern",
