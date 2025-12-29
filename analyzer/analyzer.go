@@ -54,15 +54,7 @@ func (a *analyzer) run(pass *analysis.Pass) (any, error) {
 	insp.WithStack([]ast.Node{(*ast.CompositeLit)(nil)}, a.newVisitor(pass))
 
 	if a.config.DebugCacheMetrics {
-		hits, misses := a.structFields.Stats()
-		hitRate := float64(0)
-
-		if total := hits + misses; total > 0 {
-			hitRate = float64(hits) / float64(total) * 100 //nolint:mnd
-		}
-
-		_, _ = fmt.Fprintf(os.Stderr, "[%s] cache: struct-fields: hits=%d misses=%d (%.2f%%)\n",
-			pass.Pkg.Path(), hits, misses, hitRate)
+		a.printCacheStats(pass.Pkg.Path())
 	}
 
 	return nil, nil //nolint:nilnil
@@ -398,6 +390,24 @@ func (a *analyzer) litSkippedFields(
 	onlyExported bool,
 ) structure.Fields {
 	return a.structFields.Get(typ).Skipped(lit, onlyExported)
+}
+
+func (a *analyzer) printCacheStats(pkgPath string) {
+	sfHits, sfMisses := a.structFields.Stats()
+	printCacheLine(pkgPath, "struct-fields", sfHits, sfMisses)
+
+	cHits, cMisses := a.comments.Stats()
+	printCacheLine(pkgPath, "comments", cHits, cMisses)
+}
+
+func printCacheLine(pkgPath, name string, hits, misses uint64) {
+	hitRate := float64(0)
+	if total := hits + misses; total > 0 {
+		hitRate = float64(hits) / float64(total) * 100 //nolint:mnd
+	}
+
+	_, _ = fmt.Fprintf(os.Stderr, "[%s] cache: %s: hits=%d misses=%d (%.2f%%)\n",
+		pkgPath, name, hits, misses, hitRate)
 }
 
 // structFieldsInPackage returns true if the struct's fields are defined in the
