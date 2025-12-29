@@ -6,6 +6,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"os"
 	"sync"
 
 	"golang.org/x/tools/go/analysis"
@@ -51,6 +52,18 @@ func (a *analyzer) run(pass *analysis.Pass) (any, error) {
 	insp := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector) //nolint:forcetypeassert
 
 	insp.WithStack([]ast.Node{(*ast.CompositeLit)(nil)}, a.newVisitor(pass))
+
+	if a.config.DebugCacheMetrics {
+		hits, misses := a.structFields.Stats()
+		hitRate := float64(0)
+
+		if total := hits + misses; total > 0 {
+			hitRate = float64(hits) / float64(total) * 100 //nolint:mnd
+		}
+
+		_, _ = fmt.Fprintf(os.Stderr, "[%s] cache: struct-fields: hits=%d misses=%d (%.2f%%)\n",
+			pass.Pkg.Path(), hits, misses, hitRate)
+	}
 
 	return nil, nil //nolint:nilnil
 }
@@ -324,11 +337,9 @@ func (a *analyzer) processStruct(
 		return nil, ""
 	}
 
-	// unnamed structures are only defined in same package, along with types that has
-	// prefix identical to current package name.
-	isSamePackage := info.PackagePath == pass.Pkg.Path()
+	canAccessUnexported := structFieldsInPackage(structTyp, pass.Pkg)
 
-	if f := a.litSkippedFields(lit, structTyp, !isSamePackage); len(f) > 0 {
+	if f := a.litSkippedFields(lit, structTyp, !canAccessUnexported); len(f) > 0 {
 		pos := lit.Pos()
 
 		typeName := info.ShortString()
@@ -387,6 +398,22 @@ func (a *analyzer) litSkippedFields(
 	onlyExported bool,
 ) structure.Fields {
 	return a.structFields.Get(typ).Skipped(lit, onlyExported)
+}
+
+// structFieldsInPackage returns true if the struct's fields are defined in the
+// given package. For derived types like `type Bar foo.Foo`, returns false if
+// fields are from another package.
+//
+// We treat structs with zero fields as defined in the package, since there
+// are no fields to access.
+func structFieldsInPackage(structTyp *types.Struct, pkg *types.Package) bool {
+	if structTyp.NumFields() == 0 {
+		return true
+	}
+
+	fieldPkg := structTyp.Field(0).Pkg()
+
+	return fieldPkg == nil || fieldPkg == pkg
 }
 
 type TypeInfo struct {
