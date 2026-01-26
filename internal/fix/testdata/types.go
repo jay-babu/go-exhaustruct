@@ -4,6 +4,10 @@ type Nested struct {
 	Value int
 }
 
+type DeepNested struct {
+	Inner Nested
+}
+
 type TestStruct struct {
 	stringField    string
 	intField       int
@@ -16,4 +20,13 @@ type TestStruct struct {
 	interfaceField interface{}
 	funcField      func()
 	structField    Nested
+}
+
+type NestedStruct struct {
+	Name    string
+	Nested  Nested
+	Deep    DeepNested
+	Ptr     *Nested
+	Slice   []Nested
+	Map     map[string]Nested
 }
