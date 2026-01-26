@@ -1,11 +1,16 @@
 package testdata
 
 type Nested struct {
-	Value int
+	Value   int
+	Name    string
+	Enabled bool
 }
 
 type DeepNested struct {
-	Inner Nested
+	Inner   Nested
+	Label   string
+	Count   int
+	Tags    []string
 }
 
 type TestStruct struct {
@@ -23,10 +28,10 @@ type TestStruct struct {
 }
 
 type NestedStruct struct {
-	Name    string
-	Nested  Nested
-	Deep    DeepNested
-	Ptr     *Nested
-	Slice   []Nested
-	Map     map[string]Nested
+	Name   string
+	Nested Nested
+	Deep   DeepNested
+	Ptr    *Nested
+	Slice  []Nested
+	Map    map[string]Nested
 }
