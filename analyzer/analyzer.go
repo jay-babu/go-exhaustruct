@@ -41,11 +41,15 @@ func NewAnalyzer(config Config) (*analysis.Analyzer, error) {
 	}
 
 	return &analysis.Analyzer{ //nolint:exhaustruct
-		Name:     "exhaustruct",
-		Doc:      "Checks if all structure fields are initialized",
-		Run:      a.run,
-		Requires: []*analysis.Analyzer{inspect.Analyzer},
-		Flags:    *a.config.BindToFlagSet(flag.NewFlagSet("", flag.PanicOnError)),
+		Name:             "exhaustruct",
+		Doc:              "Checks if all structure fields are initialized",
+		Run:              a.run,
+		Requires:         []*analysis.Analyzer{inspect.Analyzer},
+		Flags:            *a.config.BindToFlagSet(flag.NewFlagSet("", flag.PanicOnError)),
+		URL:              "",
+		RunDespiteErrors: false,
+		ResultType:       nil,
+		FactTypes:        nil,
 	}, nil
 }
 
@@ -89,8 +93,13 @@ func (a *analyzer) newVisitor(pass *analysis.Pass) func(n ast.Node, push bool, s
 
 		if pos != nil {
 			diag := analysis.Diagnostic{
-				Pos:     *pos,
-				Message: msg,
+				Pos:            *pos,
+				Message:        msg,
+				End:            0,
+				Category:       "",
+				URL:            "",
+				SuggestedFixes: nil,
+				Related:        nil,
 			}
 			if suggestedFix != nil {
 				diag.SuggestedFixes = []analysis.SuggestedFix{*suggestedFix}

@@ -46,8 +46,16 @@ type StructFieldsSuite struct {
 
 func (s *StructFieldsSuite) SetupSuite() {
 	pkgs, err := packages.Load(&packages.Config{ //nolint:exhaustruct
-		Mode: packages.NeedTypes | packages.NeedTypesInfo | packages.NeedTypesSizes | packages.NeedSyntax,
-		Dir:  "testdata",
+		Mode:       packages.NeedTypes | packages.NeedTypesInfo | packages.NeedTypesSizes | packages.NeedSyntax,
+		Dir:        "testdata",
+		Context:    nil,
+		Logf:       nil,
+		Env:        nil,
+		BuildFlags: nil,
+		Fset:       nil,
+		ParseFile:  nil,
+		Tests:      false,
+		Overlay:    nil,
 	}, "")
 	s.Require().NoError(err)
 	s.Require().Len(pkgs, 1)
@@ -199,7 +207,7 @@ func Test_Fields_Skipped_EmptyStruct(t *testing.T) {
 
 	var emptyFields structure.Fields
 
-	lit := &ast.CompositeLit{Elts: []ast.Expr{}} //nolint:exhaustruct
+	lit := &ast.CompositeLit{Elts: []ast.Expr{}, Type: nil, Lbrace: 0, Rbrace: 0, Incomplete: false} //nolint:exhaustruct
 
 	require.Nil(t, emptyFields.Skipped(lit, true))
 	require.Nil(t, emptyFields.Skipped(lit, false))
@@ -209,8 +217,16 @@ func Test_NewFields_EmptyStruct(t *testing.T) {
 	t.Parallel()
 
 	pkgs, err := packages.Load(&packages.Config{ //nolint:exhaustruct
-		Mode: packages.NeedTypes,
-		Dir:  "testdata",
+		Mode:       packages.NeedTypes,
+		Dir:        "testdata",
+		Context:    nil,
+		Logf:       nil,
+		Env:        nil,
+		BuildFlags: nil,
+		Fset:       nil,
+		ParseFile:  nil,
+		Tests:      false,
+		Overlay:    nil,
 	}, "")
 	require.NoError(t, err)
 	require.Len(t, pkgs, 1)
@@ -230,8 +246,16 @@ func Test_FieldsCache_Stats(t *testing.T) {
 	t.Parallel()
 
 	pkgs, err := packages.Load(&packages.Config{ //nolint:exhaustruct
-		Mode: packages.NeedTypes,
-		Dir:  "testdata",
+		Mode:       packages.NeedTypes,
+		Dir:        "testdata",
+		Context:    nil,
+		Logf:       nil,
+		Env:        nil,
+		BuildFlags: nil,
+		Fset:       nil,
+		ParseFile:  nil,
+		Tests:      false,
+		Overlay:    nil,
 	}, "")
 	require.NoError(t, err)
 	require.Len(t, pkgs, 1)

@@ -25,8 +25,16 @@ func TestZeroValueString(t *testing.T) {
 	t.Parallel()
 
 	pkgs, err := packages.Load(&packages.Config{ //nolint:exhaustruct
-		Mode: packages.NeedTypes,
-		Dir:  "testdata",
+		Mode:       packages.NeedTypes,
+		Dir:        "testdata",
+		Context:    nil,
+		Logf:       nil,
+		Env:        nil,
+		BuildFlags: nil,
+		Fset:       nil,
+		ParseFile:  nil,
+		Tests:      false,
+		Overlay:    nil,
 	}, "")
 	require.NoError(t, err)
 	require.Len(t, pkgs, 1)
@@ -79,8 +87,16 @@ func TestZeroValueString_NestedStructs(t *testing.T) {
 	t.Parallel()
 
 	pkgs, err := packages.Load(&packages.Config{ //nolint:exhaustruct
-		Mode: packages.NeedTypes,
-		Dir:  "testdata",
+		Mode:       packages.NeedTypes,
+		Dir:        "testdata",
+		Context:    nil,
+		Logf:       nil,
+		Env:        nil,
+		BuildFlags: nil,
+		Fset:       nil,
+		ParseFile:  nil,
+		Tests:      false,
+		Overlay:    nil,
 	}, "")
 	require.NoError(t, err)
 	require.Len(t, pkgs, 1)
