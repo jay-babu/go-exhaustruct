@@ -87,12 +87,30 @@ func (s *StructFieldsSuite) TestNewStructFields() {
 	sf := s.getStructFields()
 
 	s.Len(sf, 4)
-	s.Equal(structure.Fields{
+	s.assertFieldsMatch(sf, []fieldMeta{
 		{"ExportedRequired", true, false},
 		{"unexportedRequired", false, false},
 		{"ExportedOptional", true, true},
 		{"unexportedOptional", false, true},
-	}, sf)
+	})
+}
+
+// fieldMeta is a helper type for comparing field properties without Type.
+type fieldMeta struct {
+	Name     string
+	Exported bool
+	Optional bool
+}
+
+// assertFieldsMatch compares Fields by Name, Exported, and Optional only.
+func (s *StructFieldsSuite) assertFieldsMatch(actual structure.Fields, expected []fieldMeta) {
+	s.T().Helper()
+	s.Require().Len(actual, len(expected))
+	for i, f := range actual {
+		s.Equal(expected[i].Name, f.Name, "field %d name mismatch", i)
+		s.Equal(expected[i].Exported, f.Exported, "field %d exported mismatch", i)
+		s.Equal(expected[i].Optional, f.Optional, "field %d optional mismatch", i)
+	}
 }
 
 func (s *StructFieldsSuite) TestStructFields_String() {
@@ -117,11 +135,11 @@ func (s *StructFieldsSuite) TestSkipped_Positional_Incomplete() {
 	lit := s.getLiteral("_unnamedIncomplete")
 
 	// Positional literals return remaining fields regardless of export status
-	s.Equal(structure.Fields{
+	s.assertFieldsMatch(sf.Skipped(lit, true), []fieldMeta{
 		{"unexportedRequired", false, false},
 		{"ExportedOptional", true, true},
 		{"unexportedOptional", false, true},
-	}, sf.Skipped(lit, true))
+	})
 }
 
 func (s *StructFieldsSuite) TestSkipped_Named_Complete() {
@@ -140,9 +158,9 @@ func (s *StructFieldsSuite) TestSkipped_Named_MissingUnexported() {
 	s.Nil(sf.Skipped(lit, true))
 
 	// onlyExported=false: unexported fields are required
-	s.Equal(structure.Fields{
+	s.assertFieldsMatch(sf.Skipped(lit, false), []fieldMeta{
 		{"unexportedRequired", false, false},
-	}, sf.Skipped(lit, false))
+	})
 }
 
 func (s *StructFieldsSuite) TestSkipped_Named_MissingExported() {
@@ -150,15 +168,15 @@ func (s *StructFieldsSuite) TestSkipped_Named_MissingExported() {
 	lit := s.getLiteral("_namedIncomplete2")
 
 	// onlyExported=true: only exported required fields reported
-	s.Equal(structure.Fields{
+	s.assertFieldsMatch(sf.Skipped(lit, true), []fieldMeta{
 		{"ExportedRequired", true, false},
-	}, sf.Skipped(lit, true))
+	})
 
 	// onlyExported=false: both exported and unexported required fields reported
-	s.Equal(structure.Fields{
+	s.assertFieldsMatch(sf.Skipped(lit, false), []fieldMeta{
 		{"ExportedRequired", true, false},
 		{"unexportedRequired", false, false},
-	}, sf.Skipped(lit, false))
+	})
 }
 
 func (s *StructFieldsSuite) TestSkipped_Empty() {
@@ -166,14 +184,14 @@ func (s *StructFieldsSuite) TestSkipped_Empty() {
 	lit := s.getLiteral("_empty")
 
 	// Empty literal: all required fields are missing
-	s.Equal(structure.Fields{
+	s.assertFieldsMatch(sf.Skipped(lit, true), []fieldMeta{
 		{"ExportedRequired", true, false},
-	}, sf.Skipped(lit, true))
+	})
 
-	s.Equal(structure.Fields{
+	s.assertFieldsMatch(sf.Skipped(lit, false), []fieldMeta{
 		{"ExportedRequired", true, false},
 		{"unexportedRequired", false, false},
-	}, sf.Skipped(lit, false))
+	})
 }
 
 func Test_Fields_Skipped_EmptyStruct(t *testing.T) {
