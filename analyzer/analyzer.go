@@ -122,6 +122,13 @@ func (a *analyzer) checkEmptyStructAllowed(pass *analysis.Pass, stack []ast.Node
 		return true
 	}
 
+	// empty structures are always allowed when assigned to blank identifier,
+	// as this is a common Go idiom for interface compliance verification:
+	// var _ SomeInterface = StructType{}
+	if isAssignedToBlankIdentifier(stack) {
+		return true
+	}
+
 	return false
 }
 
@@ -145,6 +152,42 @@ func isChildOfVariableDeclaration(stack []ast.Node) bool {
 
 		case *ast.ValueSpec:
 			return true
+
+		case *ast.UnaryExpr:
+			// Only allow pointer taking (&)
+			if p.Op == token.AND {
+				continue
+			}
+
+			return false
+
+		default:
+			return false
+		}
+	}
+
+	return false
+}
+
+// isAssignedToBlankIdentifier checks if the composite literal is being assigned
+// to the blank identifier `_` via a var declaration. This is a common Go idiom
+// for interface compliance verification, e.g.:
+//
+//	var _ SomeInterface = StructType{}
+//	var _ SomeInterface = &StructType{}
+func isAssignedToBlankIdentifier(stack []ast.Node) bool {
+	if len(stack) < 2 { //nolint:mnd // stack for sure contains at least current node and its parent (file)
+		return false
+	}
+
+	// Start from composite literal and go up the stack
+	for i := len(stack) - 1; i > 0; i-- {
+		parent := stack[i-1]
+
+		switch p := parent.(type) {
+		case *ast.ValueSpec:
+			// var _ = StructType{} or var _ Interface = StructType{}
+			return len(p.Names) > 0 && p.Names[0].Name == "_"
 
 		case *ast.UnaryExpr:
 			// Only allow pointer taking (&)

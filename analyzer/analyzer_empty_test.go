@@ -53,6 +53,14 @@ func TestAnalyzerEmpty(t *testing.T) {
 			},
 			testPackage: "testdata/config/allow_empty/error_returns",
 		},
+		{
+			name:   "blank identifier behavior",
+			config: analyzer.Config{
+				// Test blank identifier assignment without any special allowances -
+				// structures should be allowed when assigned to _ by default
+			},
+			testPackage: "testdata/config/allow_empty/blank_identifier",
+		},
 	}
 
 	for _, tt := range tests {
